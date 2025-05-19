@@ -1,0 +1,1 @@
+# Simple-Vanilla-JavaScript-Applications
