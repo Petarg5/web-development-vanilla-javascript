@@ -1,0 +1,23 @@
+* {
+  font-family: "Play", sans-serif;
+}
+
+.cursor {
+  display: inline-block;
+  width: 5px;
+  height: 3.5rem;
+  background-color: #323330;
+  animation: blinkCursor 1s step-end infinite;
+}
+
+@keyframes blinkCursor {
+  50% {
+    background-color: transparent;
+  }
+}
+
+.background-image {
+  background-image: url("./assets/images/photo-by-adrien-olichon.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
