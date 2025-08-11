@@ -1,12 +1,12 @@
 const CACHE_NAME = "vanilla-js-cache-v1";
 const URLS_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./style.css",
-  "./script.js",
-  "./assets/favicon/favicon.svg",
-  "./assets/favicon/favicon-96x96.png",
-  "./assets/favicon/apple-touch-icon.png",
+  "../",
+  "../index.html",
+  "../style.css",
+  "../script.js",
+  "../assets/favicon/favicon.svg",
+  "../assets/favicon/favicon-96x96.png",
+  "../assets/favicon/apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (event) => {

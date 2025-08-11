@@ -1,0 +1,74 @@
+name: Vanilla JS Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install eslint clean-css-cli terser imagemin-cli --save-dev
+
+      - name: Run ESLint
+        run: npx eslint . --ext .js
+
+      - name: Run build
+        run: node scripts/build.js
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist
+
+      - name: Create Git Tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          VERSION="v$(date +'%Y.%m.%d-%H%M')"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a $VERSION -m "Automated build $VERSION"
+          git push origin $VERSION
+
+      - name: Zip dist folder
+        run: zip -r dist.zip dist
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.create_git_tag.outputs.VERSION }}
+          release_name: Release ${{ steps.create_git_tag.outputs.VERSION }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist.zip
+          asset_name: dist.zip
+          asset_content_type: application/zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Send Notification
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "✅ Build & Release complete for $GITHUB_REPOSITORY@$GITHUB_SHA"
+          # Add webhook notifications here if needed
