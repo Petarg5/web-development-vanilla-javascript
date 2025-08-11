@@ -11,9 +11,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
@@ -29,35 +29,41 @@ jobs:
         run: node scripts/build.js
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        if: ${{ hashFiles('dist/**') != '' }}
+        uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: dist-${{ github.run_number }}-${{ github.sha }}-$(date +'%Y%m%d')
           path: dist
 
       - name: Create Git Tag
         if: github.ref == 'refs/heads/main'
+        id: create_git_tag
         run: |
           VERSION="v$(date +'%Y.%m.%d-%H%M')"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a $VERSION -m "Automated build $VERSION"
           git push origin $VERSION
 
       - name: Zip dist folder
+        if: ${{ hashFiles('dist/**') != '' }}
         run: zip -r dist.zip dist
 
       - name: Create GitHub Release
+        if: ${{ hashFiles('dist/**') != '' }}
         id: create_release
         uses: actions/create-release@v1
         with:
-          tag_name: ${{ steps.create_git_tag.outputs.VERSION }}
-          release_name: Release ${{ steps.create_git_tag.outputs.VERSION }}
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Asset
+        if: ${{ hashFiles('dist/**') != '' }}
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
