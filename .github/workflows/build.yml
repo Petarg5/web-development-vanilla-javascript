@@ -1,5 +1,8 @@
 name: Vanilla JS Build
 
+permissions:
+  contents: write
+
 on:
   push:
     branches: [main]
@@ -11,31 +14,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install dependencies
         run: |
-          npm init -y
-          npm install eslint clean-css-cli terser imagemin-cli --save-dev
+          # ensure package.json exists (safe to run)
+          if [ ! -f package.json ]; then npm init -y; fi
+          npm install eslint clean-css-cli terser imagemin-cli --no-audit --no-fund --save-dev
 
       - name: Run ESLint (non-blocking)
         run: npx eslint . --ext .js || true
 
       - name: Run build
-        run: node scripts/build.js || echo "⚠️ Build script not found, skipping."
+        run: |
+          node scripts/build.js || echo "⚠️ scripts/build.js exited non-zero (build script should handle errors gracefully)."
 
-      - name: Upload artifact
-        if: ${{ hashFiles('dist/**') != '' }}
+      - name: Check dist folder
+        id: check_dist
+        run: |
+          if [ -d dist ] && [ "$(ls -A dist)" ]; then
+            echo "dist_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "dist_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artifact (if dist exists)
+        if: steps.check_dist.outputs.dist_exists == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{ github.run_number }}-${{ github.sha }}-$(date +'%Y%m%d')
           path: dist
 
-      - name: Create Git Tag
+      - name: Create Git Tag (main only)
         if: github.ref == 'refs/heads/main'
         id: create_git_tag
         run: |
@@ -43,15 +62,17 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a $VERSION -m "Automated build $VERSION"
-          git push origin $VERSION
+          git tag -a "$VERSION" -m "Automated build $VERSION"
+          # Authenticate git push using the GITHUB_TOKEN
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push origin "$VERSION"
 
       - name: Zip dist folder
-        if: ${{ hashFiles('dist/**') != '' }}
+        if: steps.check_dist.outputs.dist_exists == 'true'
         run: zip -r dist.zip dist
 
-      - name: Create GitHub Release
-        if: ${{ hashFiles('dist/**') != '' }}
+      - name: Create GitHub Release (if dist exists)
+        if: steps.check_dist.outputs.dist_exists == 'true'
         id: create_release
         uses: actions/create-release@v1
         with:
@@ -62,8 +83,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Release Asset
-        if: ${{ hashFiles('dist/**') != '' }}
+      - name: Upload Release Asset (if release created)
+        if: steps.check_dist.outputs.dist_exists == 'true'
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
@@ -73,7 +94,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Send Notification
+      - name: Send Notification (console)
         if: github.ref == 'refs/heads/main'
         run: |
-          echo "✅ Build & Release complete for $GITHUB_REPOSITORY@$GITHUB_SHA"
+          echo "✅ Build pipeline complete for $GITHUB_REPOSITORY@$GITHUB_SHA"
