@@ -3,23 +3,54 @@
   color: #323330;
 }
 
+header {
+  min-height: 25rem;
+}
+
 .background-image {
-  background: url("./assets/images/photo-by-adrien-olichon.jpg") fixed center /
-    cover no-repeat;
+  background: #323330 url("./assets/images/photo-by-adrien-olichon.avif") fixed
+    center / cover no-repeat;
+}
+
+.primary-text {
+  color: #323330;
+}
+
+.primary-link {
+  color: #323330;
+  text-decoration-color: #f0db4f;
+}
+
+.primary-link:hover {
+  color: #f0db4f;
+  text-decoration-color: #323330;
+  transition: 0.5s;
+}
+
+@media (min-width: 1460px) {
+  #typewriter {
+    min-width: 28ch;
+  }
 }
 
 .text-cursor {
-  display: inline-block;
   width: 5px;
   height: 3.5rem;
   background-color: #323330;
   animation: blinkCursor 1s step-end infinite;
 }
 
-@media (max-width: 767.98px) {
+@media (max-width: 991.98px) {
   .text-cursor {
     width: 4px;
-    height: 2rem;
+    height: 3rem;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .text-cursor {
+    width: 3px;
+    height: 2.2rem;
   }
 }
 
@@ -29,14 +60,14 @@
   }
 }
 
-.shadow-svg {
+.img-svg {
   max-width: 12rem;
   filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.5));
 }
 
 @media (max-width: 767.98px) {
-  .shadow-svg {
-    max-width: 10rem;
+  .img-svg {
+    max-width: 8rem;
   }
 }
 

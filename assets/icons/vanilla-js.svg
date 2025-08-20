@@ -1,4 +1,5 @@
-<svg class="icon" viewBox="-18.05 -18.05 292.1 397.1" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid">
+<svg viewBox="-18.05 -18.05 292 392" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid" stroke="#000" stroke-width=".004">
+  <g stroke-width="0"/>
   <g stroke-linecap="round" stroke-linejoin="round" stroke="#fafafa" stroke-width="14.448">
     <path fill="#e6a329" d="M256.086 70.72H.445l23.966 259.887 103.841 29.452 103.842-29.452Z"/>
     <path fill="#f1bf22" d="M128.252 91.893v246.143l84.136-23.836 20.467-222.307Z"/>
